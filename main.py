@@ -128,10 +128,10 @@ l0 = 0.001
 
 beam = LG_beam(N, L, 0, wavelength, W_0, m, l)
 
-E = laguerre_gaussian_beam(p_grid, beam)
+E_before = laguerre_gaussian_beam(p_grid, beam)
 
-E3 = propagation(f_grid, E, d, wavelength, Ltr)
+E_after = propagation(f_grid, E_before, d, wavelength, Ltr)
 # Выводим тепловую карту фазового профиля пучка до распространения в атмосфере
-phase_visualization(L, E)
+phase_visualization(L, E_before)
 # Выводим тепловую карту фазового профиля пучка после распространения в атмосфере
-phase_visualization(L, E3)
+phase_visualization(L, E_after)
