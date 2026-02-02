@@ -94,15 +94,30 @@ def laguerre_gaussian_beam(polar_grid, beam, normalize_to_source = None):
 
     return E_lg
 
-def fresnel_transform(A, DOE, wavelength, z, inverse = False):
+def ASM(A, DOE, wavelength, z, inverse=False):
     dx = DOE.L/DOE.N 
     nu_x = np.fft.fftfreq(DOE.N, dx)
     nu_y = np.fft.fftfreq(DOE.N, dx)
     Nu_x, Nu_y = np.meshgrid(nu_x, nu_y, indexing='ij')
-    k = 2 * np.pi / wavelength
-    H = np.exp(-1j * k * z) * np.exp(1j * np.pi * wavelength * z * (Nu_x**2 + Nu_y**2))
-    if inverse == True:
-        H = np.conj(H)
+    
+    sqrt_argument = wavelength**(-2) - Nu_x**2 - Nu_y**2
+    
+    H = np.zeros_like(sqrt_argument, dtype=complex)
+    
+    # Распространяющиеся волны
+    propagating_mask = sqrt_argument >= 0
+    H[propagating_mask] = np.exp(-1j * 2 * np.pi * z * np.sqrt(sqrt_argument[propagating_mask]))
+    
+    # Эванесцентные волны 
+    evanescent_mask = sqrt_argument < 0
+    H[evanescent_mask] = 0
+    
+    if inverse:
+        # Для обратного распространения
+        H[propagating_mask] = np.exp(1j * 2 * np.pi * z * np.sqrt(sqrt_argument[propagating_mask]))
+        # Для обратных эванесцентных волн
+        H[evanescent_mask] = 0
+    
     return np.fft.ifft2(np.fft.fft2(A) * H)
 
 def create_areas(N, L_size, R1, R2):
@@ -116,7 +131,7 @@ def create_areas(N, L_size, R1, R2):
     return L1, L2
 
 def P1(source, current, DOE, L2, C):
-    result = fresnel_transform(C*np.abs(source.A)*np.exp(1j*np.angle(current)), DOE, 
+    result = ASM(C*np.abs(source.A)*np.exp(1j*np.angle(current)), DOE, 
                                source.wavelength, DOE.f)
     result[~L2] = 0
     return result
@@ -164,7 +179,7 @@ def AAM(source, target, DOE, L1, L2, precision):
         d1 = np.sqrt(np.sum(np.abs(w - w_n)**2))
 
         # Шаг 2: обратное преобразование Френеля
-        W = fresnel_transform(T2w, DOE, source.wavelength, DOE.f, inverse = True)
+        W = ASM(T2w, DOE, source.wavelength, DOE.f, inverse = True)
 
         # Шаг 3: применяем Т1 в плоскости ДОЭ
         w_n = w.copy()
@@ -180,14 +195,14 @@ def AAM(source, target, DOE, L1, L2, precision):
         if i > 2 and abs(errors[i] - errors[i-1]) < precision:
             break
     # Шаг 5: рассчитываем функцию комплексного пропускания ДОЭ
-    T =  np.exp(1j*np.angle(fresnel_transform(w, DOE, source.wavelength, DOE.f, 
+    T =  np.exp(1j*np.angle(ASM(w, DOE, source.wavelength, DOE.f, 
                                               inverse = True)/source.A))
-    return T, errors
+    return T
 
 def DOE_propagation(source, DOE):
     # Функция для моделирования распространения пучка источника на фокусное расстояние
     # после прохождения ДОЭ
-    return fresnel_transform(source.A * np.exp(1j * np.angle(DOE.T)), DOE,
+    return ASM(source.A * np.exp(1j * np.angle(DOE.T)), DOE,
                              source.wavelength, DOE.f)
 
 def energy_efficiency(result, source, L1):
@@ -214,11 +229,11 @@ def one_layer_propagation(w, DOE, turbulence_1, wavelength):
     S = np.exp(1j * phase)
     step = turbulence_1.d/2
     # Шаг 1
-    w = fresnel_transform(w, DOE, wavelength, step)
+    w = ASM(w, DOE, wavelength, step)
     # Шаг 2
     W = w * S
     # Шаг 3
-    w = fresnel_transform(W, DOE, wavelength, step)
+    w = ASM(W, DOE, wavelength, step)
     return w
 
 def propagation(E, DOE, turbulence_1, wavelength):
@@ -268,7 +283,7 @@ source.A = laguerre_gaussian_beam(p_grid, source)
 
 # Параметры целевого пучка и создание массива, задающего пучок
 # Абсолютное значение топологического заряда и радиальный индекс
-l, m = 2, 0
+l, m = 1, 0
 target = LG_beam(N, L, 0, wavelength, W_0, m, l, 0)
 target.A = laguerre_gaussian_beam(p_grid, target, source.A)
 
@@ -294,7 +309,7 @@ l_0 = 0.001
 turbulence_1 = turbulence(N, L, r_0, L_0, l_0, d, Ltr)
 
 # Рассчитываем ДОЭ и результат его применения к исходному пучку
-phase_plate.T, errors = AAM(source, target, phase_plate, L1, L2, precision)
+phase_plate.T = AAM(source, target, phase_plate, L1, L2, precision)
 result = DOE_propagation(source, phase_plate)
 
 # Рассчитываем характеристики качества полученной моды
@@ -308,4 +323,8 @@ plot_propagation(L, result, result_after_turbulence)
 
 # Рассчитываем характеристики качества распространенной моды
 correlation(result_after_turbulence, target.A, L1)
-energy_efficiency(result_after_turbulence, target.A, L1)
+energy_efficiency(result_after_turbulence, result, L1)
+
+print(np.sqrt(np.sum(np.abs(source.A
+     - ASM(ASM(source.A, phase_plate, wavelength, 10), phase_plate, wavelength, 10, inverse=True)
+)**2)))
