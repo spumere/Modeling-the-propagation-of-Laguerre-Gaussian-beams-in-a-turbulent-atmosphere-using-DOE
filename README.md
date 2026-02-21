@@ -20,7 +20,7 @@
 ### Пучки Лагерра-Гаусса
 Комплексная амплитуда пучка Лагерра-Гаусса описывается выражением:
 
-$$E_{LG}(r,\phi) = \frac{1}{\sigma_0} \sqrt{\frac{2n!}{\pi(n+|m|)!}} \left(\frac{\sqrt{2}r}{\sigma_0}\right)^{|m|} L_n^{|m|}\left(\frac{2r^2}{\sigma_0^2}\right) \exp(im\phi) \exp(\frac{-r^2}{\sigma_0^2})$$
+$$E_{LG}(r,\phi) = \frac{1}{\sigma_0} \sqrt{\frac{2n!}{\pi(n+|m|)!}} \left(\frac{\sqrt{2}r}{\sigma_0}\right)^{|m|} L_n^{|m|}\left(\frac{2r^2}{\sigma_0^2}\right) \exp(im\phi) \exp \left(\frac{-r^2}{\sigma_0^2} \right)$$
 
 где:
 - $n$ - радиальный индекс
