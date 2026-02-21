@@ -44,5 +44,5 @@ ft_phase_screen (r0, N, delta, L0, l0) библиотеки aotools. Парам�
 ## Установка и зависимости
 
 - Установленные зависимости:
-bash
+``` bash
 pip install numpy matplotlib scipy tqdm aotools
