@@ -1,4 +1,4 @@
-# Моделирование распространения вихревых пучков Лагерра-Гаусса в турбулентной атмосфере с использованием ДОЭ
+# Моделирование распространения вихревых пучков Гаусса-Лагерра в турбулентной атмосфере с использованием ДОЭ
 
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![NumPy](https://img.shields.io/badge/NumPy-1.21+-green.svg)](https://numpy.org/)
