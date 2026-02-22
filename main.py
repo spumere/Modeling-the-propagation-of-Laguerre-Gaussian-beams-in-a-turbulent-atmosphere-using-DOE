@@ -393,7 +393,7 @@ all_results_after_1.append(mask(result_after_turbulence_1, L1))
 all_results_after_2.append(mask(result_after_turbulence_2, L1))
 print(correlation(result_after_turbulence_1, source.A, L1))
 correlation(result_after_turbulence_2, source.A, L1)
-np.save('turbulence_1.npy', phase_tensor_1)
+np.save('turbulence.npy', phase_tensor_1)
 # Создаем массивы для всех мод
 modes = [(0, 0), (1, 0), (2, 0), (3, 0), (4, 0), (5, 0)]
 
@@ -428,6 +428,3 @@ results_after_2_3d = np.stack(all_results_after_2)
 # И отображаем все сразу
 plot_propagation(L, results_before_3d, results_after_1_3d, results_after_2_3d,
                  save_svg=True, filename='all_modes.svg')
-
-# Загружаем
-# phase_tensor_1 = np.load('turbulence.npy')
